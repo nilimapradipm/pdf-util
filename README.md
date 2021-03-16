@@ -23,7 +23,7 @@ Download this jar [here](http://www.testautomationguru.com/introducing-pdfutil-t
 * To get page count
 
 ```
-import com.testautomationguru.utility.PDFUtil;
+import PDFUtil;
  
 PDFUtil pdfUtil = new PDFUtil();
 pdfUtil.getPageCount("c:/sample.pdf"); //returns the page count

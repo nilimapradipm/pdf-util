@@ -1,0 +1,14 @@
+body {
+  background-color: #fefbd8;
+}
+.dataframe {font-size:12px;color:#333333;display:inline-block;width:200px;border-width: 0px;border-color: #729ea5;border-collapse: collapse; margin-right:20px;}
+.dataframe th {font-size:12px;background-color:#d5f4e6;border-width: 1px;padding: 8px;border-style: solid;border-color: #729ea5;text-align:left;width:200px;}
+.dataframe tr {background-color:#d4e3e5;width:200px;}
+.dataframe td {font-size:12px;border-width: 1px;padding: 8px;border-style: solid;border-color: #729ea5;width:200px;}
+.dataframe tr:hover {background-color:#ffffff;}
+.floatLeft{width: 50%;float: left;}
+.floatRight{width: 50%;float: right;}
+.TimeTaken{width: 20%;float: right;}
+.table {}
+
+

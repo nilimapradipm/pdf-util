@@ -23,6 +23,16 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.commons.io.FileUtils;
 
 
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 public class PDFUtil {
 
 	private final static Logger logger = Logger.getLogger(PDFUtil.class.getName());
@@ -322,8 +332,50 @@ public class PDFUtil {
 		this.updateStartAndEndPages(file1, startPage, endPage);		
 		
 		return this.convertToImageAndCompare(file1, file2, this.startPage, this.endPage);
-	}	
-	
+	}
+
+
+
+	private boolean convertToImageAndCompare(String file1, String file2, int startPage, int endPage) throws IOException{
+
+		boolean result = true;
+
+		PDDocument doc1=null;
+		PDDocument doc2=null;
+
+		PDFRenderer pdfRenderer1 = null;
+		PDFRenderer pdfRenderer2 = null;
+
+		try {
+
+			doc1 = PDDocument.load(new File(file1));
+			doc2 = PDDocument.load(new File(file2));
+
+			pdfRenderer1 = new PDFRenderer(doc1);
+			pdfRenderer2 = new PDFRenderer(doc2);
+
+
+			for(int iPage=startPage-1;iPage<endPage;iPage++){
+				String fileName = new File(file1).getName().replace(".pdf", "_") + (iPage + 1);
+				fileName = this.getImageDestinationPath() + "/" + fileName + "_diff.png";
+
+				logger.info("Comparing Page No : " + (iPage+1));
+				BufferedImage image1 = pdfRenderer1.renderImageWithDPI(iPage, 300, ImageType.RGB);
+				BufferedImage image2 = pdfRenderer2.renderImageWithDPI(iPage, 300, ImageType.RGB);
+				result = ImageUtil.compareAndHighlight(image1, image2, fileName, this.bHighlightPdfDifference, this.imgColor.getRGB()) && result;
+				if(!this.bCompareAllPages && !result){
+					break;
+				}
+			}
+		}catch (Exception e) {
+			e.printStackTrace();
+		}finally{
+			doc1.close();
+			doc2.close();
+		}
+		return result;
+	}
+/*
 	private boolean convertToImageAndCompare(String file1, String file2, int startPage, int endPage) throws IOException{
 		
 		boolean result = true;
@@ -362,7 +414,7 @@ public class PDFUtil {
 			doc2.close();
 		}
 		return result;  	
-	}
+	}*/
 	
 
 
@@ -446,7 +498,7 @@ public class PDFUtil {
 	private String getFileName(String file){
 		return new File(file).getName();
 	}
-	
+
 	private void updateStartAndEndPages(String file, int start, int end) throws IOException{
 		
 		PDDocument document = PDDocument.load(new File(file));
@@ -468,5 +520,45 @@ public class PDFUtil {
 		document.close();
 		logger.info("Updated start page:" + this.startPage);
 		logger.info("Updated end   page:" + this.endPage);
+	}
+
+
+	public static void combineImagesIntoPDF(String pdfPath, String... inputDirsAndFiles) throws IOException {
+		try (PDDocument doc = new PDDocument()) {
+			for (String input : inputDirsAndFiles) {
+				Files.find(Paths.get(input),
+						Integer.MAX_VALUE,
+						(path, basicFileAttributes) -> Files.isRegularFile(path))
+						.forEachOrdered(path -> addImageAsNewPage(doc, path.toString()));
+			}
+			doc.save(pdfPath);
+		}
+	}
+
+	private static void addImageAsNewPage(PDDocument doc, String imagePath) {
+		try {
+			PDImageXObject image          = PDImageXObject.createFromFile(imagePath, doc);
+			PDRectangle    pageSize       = PDRectangle.A4;
+
+			int            originalWidth  = image.getWidth();
+			int            originalHeight = image.getHeight();
+			float          pageWidth      = pageSize.getWidth();
+			float          pageHeight     = pageSize.getHeight();
+			float          ratio          = Math.min(pageWidth / originalWidth, pageHeight / originalHeight);
+			float          scaledWidth    = originalWidth  * ratio;
+			float          scaledHeight   = originalHeight * ratio;
+			float          x              = (pageWidth  - scaledWidth ) / 2;
+			float          y              = (pageHeight - scaledHeight) / 2;
+
+			PDPage         page           = new PDPage(pageSize);
+			doc.addPage(page);
+			try (PDPageContentStream contents = new PDPageContentStream(doc, page)) {
+				contents.drawImage(image, x, y, scaledWidth, scaledHeight);
+			}
+			System.out.println("Added: " + imagePath);
+		} catch (IOException e) {
+			System.err.println("Failed to process: " + imagePath);
+			e.printStackTrace(System.err);
+		}
 	}
 }
