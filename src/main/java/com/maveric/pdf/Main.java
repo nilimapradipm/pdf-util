@@ -1,3 +1,4 @@
+/*
 package com.maveric.pdf;
 
 import java.io.IOException;
@@ -29,3 +30,4 @@ public final class Main {
 		System.out.println("Usage: java -jar pdf-util.jar file1.pdf file2.pdf [Optional:image-destination-path]");
 	}
 }
+*/
