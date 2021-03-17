@@ -1,192 +1,165 @@
 package com.maveric.pdf.utility;
 
-import org.testng.Assert;
+import org.apache.commons.io.FileUtils;
 import org.testng.annotations.Test;
 
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class PDFUtilTest {
 
     PDFUtil pdfutil = new PDFUtil();
 
 
-  // @Test
-    public void comparePDFTextModeDiff1() throws IOException {
-       String file1 = getFilePath("compare/samp.pdf");
-       String file2 = getFilePath("compare/sampwithchange.pdf");
-
-        pdfutil.setCompareMode(CompareMode.TEXT_MODE);
-        boolean result = pdfutil.compare(file1, file2);
-
-        Assert.assertFalse(result);
-        System.out.println("Text Mode - MisMatch as expected so comparison flag is:" + result);
-
-    }
-
-    //@Test
-    public void comparePDFTextModeSame1() throws IOException {
-        String file1 = getFilePath("compare/sample-ce-notice-arabic.pdf");
-        String file2 = getFilePath("compare/sample-ce-notice-arabicnochange.pdf");
-
-
-        pdfutil.setCompareMode(CompareMode.TEXT_MODE);
-
-        String s = pdfutil.getText(file1);
-        String d = pdfutil.getText(file2);
-
-        System.out.println(s);
-
-        System.out.println(d);
-        boolean result = pdfutil.compare(file1, file2);
-
-        Assert.assertTrue(result);
-        System.out.println("Text Mode - Match as expected so comparison flag is:" + result);
-    }
-
-
-
-
-
-  // @Test
-    public void comparePDFImageModeSame() throws IOException {
-
-        String file1 = getFilePath("compare/table.pdf");
-        String file2 = getFilePath("compare/tablesame.pdf");
-        pdfutil.highlightPdfDifference(Color.BLUE);
-        pdfutil.setCompareMode(CompareMode.VISUAL_MODE);
-        pdfutil.compare(file1, file2);
-        //pdfutil.highlightPdfDifference(true);
-
-        pdfutil.setImageDestinationPath("./src/test/resources");
-        boolean result = pdfutil.compare(file1, file2);
-        Assert.assertTrue(result);
-       System.out.println("Visual Mode - Match as expected so comparison flag is:" + result);
-    }
-
-    //@Test
-    public void comparePDFTextModeDiff() throws IOException {
-        {
-            File folderOldVersion = new File("./src/test/resources/OldVersion/");
-            File[] listOfFilesInOldVersion = folderOldVersion.listFiles();
-            // System.out.println (listOfFilesInA);
-            File folderNewVersion = new File("./src/test/resources/NewVersion/");
-            File[] listOfFilesInNewVersion = folderNewVersion.listFiles();
-            //System.out.println (listOfFilesInB);
-            for (File fileA : listOfFilesInOldVersion) {
-                // System.out.println("File : " + fileA.getName());
-                if (fileA.isFile()) {
-                    for (File fileB : listOfFilesInNewVersion) {
-                        // System.out.println("File : " + fileB.getName());
-                        if (fileB.isFile()) {
-                            //System.out.println("File names matched");
-
-                            if (fileA.getName().equals(fileB.getName())) {
-                                System.out.println("");
-                                System.out.println("TEST STARTS");
-                                System.out.println("Old Version File : " + fileA.getName());
-                                System.out.println("New Version File : " + fileB.getName());
-
-                                String file1 = fileA.toString();
-                                String file2 = fileB.toString();
-                                System.out.println("Comparing files in Text Mode");
-                                pdfutil.setCompareMode(CompareMode.TEXT_MODE);
-                                // pdfutil.highlightPdfDifference(true);
-                                //pdfutil.highlightPdfDifference(Color.GREEN);
-                                //pdfutil.setImageDestinationPath("./src/test/resources/result");
-                                String textfile1 = pdfutil.getText(file1);
-                                String textfile2 = pdfutil.getText(file2);
-                                boolean result = pdfutil.compare(file1, file2);
-                                System.out.println(textfile1);
-                                System.out.println(textfile2);
-                                System.out.println("Comparison Flag for Text Mode is : " + result);
-                                System.out.println("TEST ENDS");
-                                System.out.println("");
-                            }
-                        }
-
-                    }
-                }
-            }
-        }
-
-    }
-
 
     @Test
     public void comparePDFImageModeDiff() throws IOException {
         long startTime = System.currentTimeMillis();
-        {
-            File folderOldVersion  = new File("./src/test/resources/OldVersion/");
-            File[] listOfFilesInOldVersion = folderOldVersion.listFiles();
 
-            File folderNewVersion = new File("./src/test/resources/NewVersion/");
-            File[] listOfFilesInNewVersion = folderNewVersion.listFiles();
+        File file = new File("");
+        try {
+            file = new File("./src/test/resources/CompareResult/OverallReport.html");
+            if (!file.exists()) {
+                file.createNewFile();
 
-            for (File fileOldVersion : listOfFilesInOldVersion ) {
+            }
 
-                if (fileOldVersion.isFile()) {
-                    for (File fileNewVersion : listOfFilesInNewVersion) {
+            String header1 = "<html>" + "<head>";
+            String header2 = "<h1 style = \"background-color:powderblue; text-align:center;font-size:30px;\">";
+            String header3 = "<img src = \"http://localhost:63343/pdf-util/maveric.png\" align = \"right\" alt = \"Italian Trulli\" width = \"100\" height = \"35\" >PDF COMPARISON DASHBOARD</h1>";
+            String header4 = "<link rel=\"stylesheet\" type=\"text/css\" href=\"http://localhost:63343/pdf-util/mystyle.css\">";
+            String header5 = "</head>";
+            String header6 =
 
-                        if (fileNewVersion.isFile()) {
+                    "<table align=\"center\"  CELLSPACING=0 CELLPADDING=5 border=\"1\"></br>"
+                            +
+                            "<tr>" +
+                            "<td style=\"font-weight:bold\" align=\"center\" >REPORT</td>" +
+                            "<td style=\"font-weight:bold\" align=\"center\" >FILESIZE (OLD VERSION vs NEW VERSION)</td>" +
+                            "<td style=\"font-weight:bold\" align=\"center\" >EXECUTION TIME</td>" +
+                            "<td style=\"font-weight:bold\" align=\"center\" >STATUS</td>" +
+                            "</tr>";
+            FileUtils.writeStringToFile(file, header1, true);
+            FileUtils.writeStringToFile(file, header2, true);
+            FileUtils.writeStringToFile(file, header3, true);
+            FileUtils.writeStringToFile(file, header4, true);
+            FileUtils.writeStringToFile(file, header5, true);
+            FileUtils.writeStringToFile(file, header6, true);
 
 
-                            if (fileOldVersion.getName().equals(fileNewVersion.getName())) {
-                                System.out.println("");
-                                System.out.println("TEST STARTS");
-                                long startTimeForTest = System.currentTimeMillis();
-                                System.out.println("Old Version File : " + fileOldVersion.getName());
-                                System.out.println("New Version File : " + fileNewVersion.getName());
-                                String file1 = fileOldVersion .toString();
-                                String file2 = fileNewVersion.toString();
+      /*  } catch (IOException e) {
+            e.printStackTrace();
+        }*/
+        File folderOldVersion = new File("./src/test/resources/OldVersion/");
+        File[] listOfFilesInOldVersion = folderOldVersion.listFiles();
 
-                                System.out.println("Comparing files in Visual Mode");
-                                pdfutil.setCompareMode(CompareMode.VISUAL_MODE);
-                                pdfutil.compareAllPages(true);
-                                pdfutil.highlightPdfDifference(true);
-                                //System.out.println(fileOldVersion .getName().split("\\.")[0]);
-                                //System.out.println(fileOldVersion .getName().split("\\.")[0]);
-                                //pdfutil.createFolder ("./src/test/resources/CompareResult" + "/" + fileA.getName().split("\\.")[0]);
-                                pdfutil.setImageDestinationPath("./src/test/resources/CompareResult" + "/" + fileOldVersion.getName().split("\\.")[0]);
-                                String path = pdfutil.getImageDestinationPath();
-                               // System.out.println(path);
-                                File file = new File(path);
-                                file.mkdir();
-                                boolean result = pdfutil.compare(file1, file2);
-                                //System.out.println("Comparison Results for Visual Mode is : " + result + "which means differences exist in pdf");
-                                if (!result)
-                                {
-                                    System.out.println("Comparison Results for Visual Mode is : " + result + " which means differences exist in pdf");
-                                    String pdf = "./src/test/resources/CompareResult/" + fileOldVersion.getName().split("\\.")[0] + "/" + fileOldVersion.getName().split("\\.")[0] + ".pdf";
-                                    PDFUtil.combineImagesIntoPDF(pdf, path);
-                                }
-                                else
-                                {
-                                    System.out.println("Comparison Results for Visual Mode is : " + result + " which means no differences exist in pdf");
-                                }
+        File folderNewVersion = new File("./src/test/resources/NewVersion/");
+        File[] listOfFilesInNewVersion = folderNewVersion.listFiles();
 
-                                long endTimeForTest = System.currentTimeMillis();
+        for (File fileOldVersion : listOfFilesInOldVersion) {
+            if (fileOldVersion.isFile()) {
+                for (File fileNewVersion : listOfFilesInNewVersion) {
+                    if (fileNewVersion.isFile()) {
+                        if (fileOldVersion.getName().equals(fileNewVersion.getName())) {
+                            System.out.println("");
+                            System.out.println("TEST STARTS");
+                            long startTimeForTest = System.currentTimeMillis();
+                            System.out.println("Old Version File : " + fileOldVersion.getName());
+                            System.out.println("New Version File : " + fileNewVersion.getName());
+                            String file1 = fileOldVersion.toString();
+                            String file2 = fileNewVersion.toString();
 
-                                long timeElapsedForTest = endTimeForTest  - startTimeForTest;
 
-                                System.out.println("Execution time for this test is : " + timeElapsedForTest + " ms");
+                            File fileold = new File(file1);
+                            long fileoldsize = fileold.length();
 
+                            File filenew = new File(file2);
+                            long filenewsize = filenew.length();
+
+                            String filesize = fileoldsize + " bytes" + " vs " + filenewsize + " bytes";
+
+                            System.out.println("Comparing files in Visual Mode");
+                            pdfutil.setCompareMode(CompareMode.VISUAL_MODE);
+                            pdfutil.compareAllPages(true);
+                            pdfutil.highlightPdfDifference(true);
+
+                            pdfutil.setImageDestinationPath("./src/test/resources/CompareResult" + "/" + fileOldVersion.getName().split("\\.")[0]);
+                            String path = pdfutil.getImageDestinationPath();
+
+                            File filecompare = new File(path);
+                            filecompare.mkdir();
+                            boolean result = pdfutil.compare(file1, file2);
+
+                            String pdf = "";
+                            String size = "";
+                            String status = "";
+                            String pdfname = "";
+                            String pdflink = "";
+                            String pdflink1 = "";
+                            String pdflink2 = "";
+                            if (!result) {
+                                System.out.println("Comparison Results for Visual Mode is : " + result + " which means differences exist in pdf");
+                                pdf = "./src/test/resources/CompareResult/" + fileOldVersion.getName().split("\\.")[0] + "/" + fileOldVersion.getName().split("\\.")[0] + ".pdf";
+                                PDFUtil.combineImagesIntoPDF(pdf, path);
+                                pdfname = fileOldVersion.getName().split("\\.")[0] + ".pdf";
+                                pdflink1 =  "http://localhost:63343/pdf-util/src/test/resources/CompareResult/" + fileOldVersion.getName().split("\\.")[0] + "/" + fileOldVersion.getName().split("\\.")[0] + ".pdf";
+                                pdflink = "<a" + " " + "href=" + pdflink1 + " " + "target=\"blank\"> " + pdfname + "</a>";
+                                status = "Differences";
+                            } else {
+                                System.out.println("Comparison Results for Visual Mode is : " + result + " which means no differences exist in pdf");
+                                pdf = "./src/test/resources/OldVersion/" + fileOldVersion.getName().split("\\.")[0] + "/" + fileOldVersion.getName().split("\\.")[0] + ".pdf";
+                                pdfname = fileOldVersion.getName().split("\\.")[0] + ".pdf";
+                                pdflink2 =  "http://localhost:63343/pdf-util/src/test/resources/OldVersion/" + pdfname ;
+                                pdflink = "<a" + " " + "href=" + pdflink2 + " " + "target=\"blank\"> " + pdfname + "</a>";
+                               status = "Matched";
                             }
-                        }
 
+                            long endTimeForTest = System.currentTimeMillis();
+
+                            long timeElapsedForTest = endTimeForTest - startTimeForTest;
+                            String time = String.valueOf(timeElapsedForTest);
+                            System.out.println("Execution time for this test is : " + timeElapsedForTest + " ms");
+
+
+                            FileUtils.writeStringToFile(file, "<tr>", true);
+                            FileUtils.writeStringToFile(file, "<td align=\"center\">", true);
+                            FileUtils.writeStringToFile(file, pdflink, true);
+                            FileUtils.writeStringToFile(file, "</td><td align=\"center\">", true);
+                            FileUtils.writeStringToFile(file, filesize, true);
+                            FileUtils.writeStringToFile(file, "</td><td align=\"center\">", true);
+                            FileUtils.writeStringToFile(file, time + " ms", true);
+                            FileUtils.writeStringToFile(file, "</td><td align=\"center\">", true);
+                            FileUtils.writeStringToFile(file, status, true);
+                            FileUtils.writeStringToFile(file, "</td>", true);
+                            FileUtils.writeStringToFile(file, "</tr>", true);
+
+                        }
                     }
                 }
             }
         }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         long endTime = System.currentTimeMillis();
-
         long timeElapsed = endTime - startTime;
+
         System.out.println("");
         System.out.println("Total Execution time : " + timeElapsed + " ms");
+        String overallexecutiontime = "<p align=\"center\">Overall Execution Time : " + timeElapsed + " sec" + "</p>";
+
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+        LocalDateTime now = LocalDateTime.now();
+
+        String reportgeneratedtime = "<p align=\"center\">Report Generated TimeStamp : " + dtf.format(now) + "</p>";
+
+        FileUtils.writeStringToFile(file, "</table>", true);
+        FileUtils.writeStringToFile(file, "</html>", true);
+        FileUtils.writeStringToFile(file, overallexecutiontime, true);
+        FileUtils.writeStringToFile(file, reportgeneratedtime, true);
     }
-
-
 
 
 
@@ -197,3 +170,4 @@ public class PDFUtilTest {
 
 
 }
+
